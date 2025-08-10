@@ -22,6 +22,15 @@ type Parcel struct {
 	CreatedAt string
 }
 
+type ParcelStore struct {
+    db *sql.DB
+}
+
+func NewParcelStore (b *sql.DB) ParcelStore {
+    return ParcelStore{db: b}
+}
+
+
 type ParcelService struct {
 	store ParcelStore
 }
@@ -99,7 +108,14 @@ func (s ParcelService) Delete(number int) error {
 func main() {
 	// настройте подключение к БД
 
-	store := // создайте объект ParcelStore функцией NewParcelStore
+    db, err := sql.Open("sqlite", "tracker.db")
+
+    if err != nil {
+        fmt.Errorf ("Error during database connection initialization.")
+        return
+    }
+
+	store := NewParcelStore(db)
 	service := NewParcelService(store)
 
 	// регистрация посылки
