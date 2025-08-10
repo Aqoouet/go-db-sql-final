@@ -26,8 +26,8 @@ type ParcelStore struct {
     db *sql.DB
 }
 
-func NewParcelStore (b *sql.DB) ParcelStore {
-    return ParcelStore{db: b}
+func NewParcelStore (db *sql.DB) ParcelStore {
+    return ParcelStore{db: db}
 }
 
 
@@ -111,9 +111,11 @@ func main() {
     db, err := sql.Open("sqlite", "tracker.db")
 
     if err != nil {
-        fmt.Errorf ("Error during database connection initialization.")
+        fmt.Errorf ("Error during database connection initialization: %v\n", err)
         return
     }
+
+    defer db.Close()
 
 	store := NewParcelStore(db)
 	service := NewParcelService(store)

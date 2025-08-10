@@ -6,9 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
-
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -34,43 +33,41 @@ func getTestParcel() Parcel {
 func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-    require.NoErrorf(t, err, "Failed to initialize connection with database")
-    tx,err := db.Begin()
-    defer tx.Rollback()
-    require.NoErrorf(t, err, "Failed to begin transaction")
-    store := NewParcelStore(db)
+	require.NoErrorf(t, err, "Failed to initialize connection with database")
+	tx, err := db.Begin()
+	defer tx.Rollback()
+	require.NoErrorf(t, err, "Failed to begin transaction")
+	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
 	// add
 	// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
 
-    number, err := store.Add(parcel)
-    require.NoErrorf(t, err, "Failed to add parcel")
-    require.NotEmpty(t, number)
+	number, err := store.Add(parcel)
+	require.NoErrorf(t, err, "Failed to add parcel")
+	require.NotEmpty(t, number)
 
 	// get
 	// получите только что добавленную посылку, убедитесь в отсутствии ошибки
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 
-    returnedParcel, err := store.Get(number)
-    require.NoErrorf(t, err, "Failed to get parcel with number = %d", number)
-    assert.Equalf(t, parcel.Client, returnedParcel.Client, "Row number %d: expected client = %d not equal to returned client = %d",  number, parcel.Client,  returnedParcel.Client)
-    assert.Equalf(t, parcel.Status, returnedParcel.Status, "Row number %d: expected status = %s not equal to returned status = %s",  number, parcel.Status,  returnedParcel.Status)
-    assert.Equalf(t, parcel.Address, returnedParcel.Address, "Row number %d: expected address = %s not equal to returned address = %s",  number, parcel.Address,  returnedParcel.Address)
-    assert.Equalf(t, parcel.CreatedAt, returnedParcel.CreatedAt, "Row number %d: expected created_at time  = %v not equal to returned created_at time = %v",  number, parcel.CreatedAt,  returnedParcel.CreatedAt)
-
+	returnedParcel, err := store.Get(number)
+	require.NoErrorf(t, err, "Failed to get parcel with number = %d", number)
+	assert.Equalf(t, parcel.Client, returnedParcel.Client, "Row number %d: expected client = %d not equal to returned client = %d", number, parcel.Client, returnedParcel.Client)
+	assert.Equalf(t, parcel.Status, returnedParcel.Status, "Row number %d: expected status = %s not equal to returned status = %s", number, parcel.Status, returnedParcel.Status)
+	assert.Equalf(t, parcel.Address, returnedParcel.Address, "Row number %d: expected address = %s not equal to returned address = %s", number, parcel.Address, returnedParcel.Address)
+	assert.Equalf(t, parcel.CreatedAt, returnedParcel.CreatedAt, "Row number %d: expected created_at time  = %v not equal to returned created_at time = %v", number, parcel.CreatedAt, returnedParcel.CreatedAt)
 
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
 	// проверьте, что посылку больше нельзя получить из БД
 
-    err=store.Delete(number)
-    require.NoErrorf(t, err, "Failed to delete parcel with number = %d", number)
+	err = store.Delete(number)
+	require.NoErrorf(t, err, "Failed to delete parcel with number = %d", number)
 
-    _, err = store.Get(number)
-    require.Errorf(t, err, "Get request returned no error, while there must be no rows satisfing the request")
-    require.ErrorIsf(t, sql.ErrNoRows, err , "Returned unexpected error %w", err)
-
+	_, err = store.Get(number)
+	require.Errorf(t, err, "Get request returned no error, while there must be no rows satisfing the request")
+	require.ErrorIsf(t, sql.ErrNoRows, err, "Returned unexpected error %w", err)
 
 }
 
@@ -79,34 +76,33 @@ func TestSetAddress(t *testing.T) {
 	// prepare
 
 	db, err := sql.Open("sqlite", "tracker.db")
-    require.NoErrorf(t, err, "Failed to initialize connection with database")
-    tx,err := db.Begin()
-    defer tx.Rollback()
-    require.NoErrorf(t, err, "Failed to begin transaction")
-    store := NewParcelStore(db)
+	require.NoErrorf(t, err, "Failed to initialize connection with database")
+	tx, err := db.Begin()
+	defer tx.Rollback()
+	require.NoErrorf(t, err, "Failed to begin transaction")
+	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
 	// add
 	// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
 
-    number, err := store.Add(parcel)
-    require.NoErrorf(t, err, "Failed to add parcel")
-    require.NotEmpty(t, number)
+	number, err := store.Add(parcel)
+	require.NoErrorf(t, err, "Failed to add parcel")
+	require.NotEmpty(t, number)
 
 	// set address
 	// обновите адрес, убедитесь в отсутствии ошибки
 	newAddress := "new test address"
 
-    err = store.SetAddress(number, newAddress)
-    require.NoErrorf(t, err, "Failed to set address")
+	err = store.SetAddress(number, newAddress)
+	require.NoErrorf(t, err, "Failed to set address")
 
 	// check
 	// получите добавленную посылку и убедитесь, что адрес обновился
 
-    returnedParcel, err = store.Get(number)
-    require.NoErrorf(t, err, "Failed to get parcel with number = %d", number)
-    assert.Equalf(t, newAddress, returnedParcel.Address, "Row number %d: expected address = %s not equal to returned address = %s",  number, newAddress,  returnedParcel.Address)
-
+	returnedParcel, err := store.Get(number)
+	require.NoErrorf(t, err, "Failed to get parcel with number = %d", number)
+	assert.Equalf(t, newAddress, returnedParcel.Address, "Row number %d: expected address = %s not equal to returned address = %s", number, newAddress, returnedParcel.Address)
 
 }
 
@@ -115,32 +111,29 @@ func TestSetStatus(t *testing.T) {
 	// prepare
 
 	db, err := sql.Open("sqlite", "tracker.db")
-    require.NoErrorf(t, err, "Failed to initialize connection with database")
-    tx,err := db.Begin()
-    defer tx.Rollback()
-    require.NoErrorf(t, err, "Failed to begin transaction")
-    store := NewParcelStore(db)
+	require.NoErrorf(t, err, "Failed to initialize connection with database")
+	tx, err := db.Begin()
+	defer tx.Rollback()
+	require.NoErrorf(t, err, "Failed to begin transaction")
+	store := NewParcelStore(db)
 	parcel := getTestParcel()
 
 	// add
 	// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
 
-    number, err := store.Add(parcel)
-    require.NoErrorf(t, err, "Failed to add parcel")
-    require.NotEmpty(t, number)
-
+	number, err := store.Add(parcel)
+	require.NoErrorf(t, err, "Failed to add parcel")
+	require.NotEmpty(t, number)
 
 	// set status
 	// обновите статус, убедитесь в отсутствии ошибки
-    err =  store.SetStatus(number, ParcelStatusDelivered)
-
+	err = store.SetStatus(number, ParcelStatusDelivered)
 
 	// check
 	// получите добавленную посылку и убедитесь, что статус обновился
-    returnedParcel, err = store.Get(number)
-    require.NoErrorf(t, err, "Failed to get parcel with number = %d", number)
-    assert.Equalf(t,  ParcelStatusDelivered, returnedParcel.Status, "Row number %d: expected status = %s not equal to returned status = %s",  number, ParcelStatusDelivered   ,  returnedParcel.Status)
-
+	returnedParcel, err := store.Get(number)
+	require.NoErrorf(t, err, "Failed to get parcel with number = %d", number)
+	assert.Equalf(t, ParcelStatusDelivered, returnedParcel.Status, "Row number %d: expected status = %s not equal to returned status = %s", number, ParcelStatusDelivered, returnedParcel.Status)
 
 }
 
@@ -149,12 +142,12 @@ func TestGetByClient(t *testing.T) {
 	// prepare
 
 	db, err := sql.Open("sqlite", "tracker.db")
-    require.NoErrorf(t, err, "Failed to initialize connection with database")
-    tx,err := db.Begin()
-    defer tx.Rollback()
-    require.NoErrorf(t, err, "Failed to begin transaction")
-    store := NewParcelStore(db)
-    
+	require.NoErrorf(t, err, "Failed to initialize connection with database")
+	tx, err := db.Begin()
+	defer tx.Rollback()
+	require.NoErrorf(t, err, "Failed to begin transaction")
+	store := NewParcelStore(db)
+
 	parcels := []Parcel{
 		getTestParcel(),
 		getTestParcel(),
@@ -172,9 +165,9 @@ func TestGetByClient(t *testing.T) {
 	// add
 	for i := 0; i < len(parcels); i++ {
 		// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
-        number, err := store.Add(parcel)
-        require.NoErrorf(t, err, "Failed to add parcel")
-        require.NotEmpty(t, number)
+		number, err := store.Add(parcels[i])
+		require.NoErrorf(t, err, "Failed to add parcel")
+		require.NotEmpty(t, number)
 
 		// обновляем идентификатор добавленной у посылки
 		parcels[i].Number = number
@@ -184,14 +177,13 @@ func TestGetByClient(t *testing.T) {
 	}
 
 	// get by client
-    // получите список посылок по идентификатору клиента, сохранённого в переменной client
+	// получите список посылок по идентификатору клиента, сохранённого в переменной client
 	storedParcels, err := store.GetByClient(client)
 
-    // убедитесь в отсутствии ошибки
+	// убедитесь в отсутствии ошибки
 	// убедитесь, что количество полученных посылок совпадает с количеством добавленных
-    require.NoErrorf(t, err, "Failed to get parcels by client = %d", client)
-    require.Lenf(t, storedParcels, len(parcels), "Number of stored parcels %d not equal to numbe of initial parcels %d", len(storedParcels), len(parcels))
-    
+	require.NoErrorf(t, err, "Failed to get parcels by client = %d", client)
+	require.Lenf(t, storedParcels, len(parcels), "Number of stored parcels %d not equal to numbe of initial parcels %d", len(storedParcels), len(parcels))
 
 	// check
 	for _, storedParcel := range storedParcels {
@@ -199,17 +191,16 @@ func TestGetByClient(t *testing.T) {
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
 		// убедитесь, что значения полей полученных посылок заполнены верно
 
-        n := storedParcel.Number
+		n := storedParcel.Number
 
-        parcel := parcelsMap[n]
+		parcel := parcelMap[n]
 
-        require.Containsf(t, parcelMap, n, "Parcel with number %d is missing in the map of parcels for client = %d", n, client)
+		require.Containsf(t, parcelMap, n, "Parcel with number %d is missing in the map of parcels for client = %d", n, client)
 
-        assert.Equalf(t, parcel.Client, storedParcel.Client, "Row number %d: expected client = %d not equal to returned client = %d",  number, parcel.Client,  storedParcel.Client)
-        assert.Equalf(t, parcel.Status, storedParcel.Status, "Row number %d: expected status = %s not equal to returned status = %s",  number, parcel.Status,  storedParcel.Status)
-        assert.Equalf(t, parcel.Address, storedParcel.Address, "Row number %d: expected address = %s not equal to returned address = %s",  number, parcel.Address,  storedParcel.Address)
-        assert.Equalf(t, parcel.CreatedAt, storedParcel.CreatedAt, "Row number %d: expected created_at time  = %v not equal to returned created_at time = %v",  number, parcel.CreatedAt,  storedParcel.CreatedAt)
-
+		assert.Equalf(t, parcel.Client, storedParcel.Client, "Row number %d: expected client = %d not equal to returned client = %d", n, parcel.Client, storedParcel.Client)
+		assert.Equalf(t, parcel.Status, storedParcel.Status, "Row number %d: expected status = %s not equal to returned status = %s", n, parcel.Status, storedParcel.Status)
+		assert.Equalf(t, parcel.Address, storedParcel.Address, "Row number %d: expected address = %s not equal to returned address = %s", n, parcel.Address, storedParcel.Address)
+		assert.Equalf(t, parcel.CreatedAt, storedParcel.CreatedAt, "Row number %d: expected created_at time  = %v not equal to returned created_at time = %v", n, parcel.CreatedAt, storedParcel.CreatedAt)
 
 	}
 }
