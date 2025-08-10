@@ -154,7 +154,6 @@ func TestGetByClient(t *testing.T) {
     defer tx.Rollback()
     require.NoErrorf(t, err, "Failed to begin transaction")
     store := NewParcelStore(db)
-	parcel := getTestParcel()
     
 	parcels := []Parcel{
 		getTestParcel(),
@@ -172,24 +171,45 @@ func TestGetByClient(t *testing.T) {
 
 	// add
 	for i := 0; i < len(parcels); i++ {
-		id, err := // добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
+		// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
+        number, err := store.Add(parcel)
+        require.NoErrorf(t, err, "Failed to add parcel")
+        require.NotEmpty(t, number)
 
 		// обновляем идентификатор добавленной у посылки
-		parcels[i].Number = id
+		parcels[i].Number = number
 
 		// сохраняем добавленную посылку в структуру map, чтобы её можно было легко достать по идентификатору посылки
-		parcelMap[id] = parcels[i]
+		parcelMap[number] = parcels[i]
 	}
 
 	// get by client
-	storedParcels, err := // получите список посылок по идентификатору клиента, сохранённого в переменной client
-	// убедитесь в отсутствии ошибки
+    // получите список посылок по идентификатору клиента, сохранённого в переменной client
+	storedParcels, err := store.GetByClient(client)
+
+    // убедитесь в отсутствии ошибки
 	// убедитесь, что количество полученных посылок совпадает с количеством добавленных
+    require.NoErrorf(t, err, "Failed to get parcels by client = %d", client)
+    require.Lenf(t, storedParcels, len(parcels), "Number of stored parcels %d not equal to numbe of initial parcels %d", len(storedParcels), len(parcels))
+    
 
 	// check
-	for _, parcel := range storedParcels {
+	for _, storedParcel := range storedParcels {
 		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
 		// убедитесь, что значения полей полученных посылок заполнены верно
+
+        n := storedParcel.Number
+
+        parcel := parcelsMap[n]
+
+        require.Containsf(t, parcelMap, n, "Parcel with number %d is missing in the map of parcels for client = %d", n, client)
+
+        assert.Equalf(t, parcel.Client, storedParcel.Client, "Row number %d: expected client = %d not equal to returned client = %d",  number, parcel.Client,  storedParcel.Client)
+        assert.Equalf(t, parcel.Status, storedParcel.Status, "Row number %d: expected status = %s not equal to returned status = %s",  number, parcel.Status,  storedParcel.Status)
+        assert.Equalf(t, parcel.Address, storedParcel.Address, "Row number %d: expected address = %s not equal to returned address = %s",  number, parcel.Address,  storedParcel.Address)
+        assert.Equalf(t, parcel.CreatedAt, storedParcel.CreatedAt, "Row number %d: expected created_at time  = %v not equal to returned created_at time = %v",  number, parcel.CreatedAt,  storedParcel.CreatedAt)
+
+
 	}
 }
