@@ -111,7 +111,15 @@ func main() {
     db, err := sql.Open("sqlite", "tracker.db")
 
     if err != nil {
-        fmt.Errorf ("Error during database connection initialization: %v\n", err)
+        fmt.Printf ("Error during database connection initialization: %v\n", err)
+        return
+    }
+
+    err = db.Ping()
+
+    if err != nil {
+        fmt.Printf("Error connecting to database: %v\n", err)
+        db.Close()
         return
     }
 

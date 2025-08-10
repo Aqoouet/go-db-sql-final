@@ -29,15 +29,35 @@ func getTestParcel() Parcel {
 	}
 }
 
+func setupTestDB (t *testing.T) (*sql.DB, ParcelStore) {
+
+    db, err := sql.Open("sqlite", ":memory:")
+    require.NoErrorf(t, err, "Failed to create in-memory database")
+
+    _, err = db.Exec(`
+            CREATE TABLE IF NOT EXISTS "parcel"
+            (
+                number     integer
+                    constraint parcel_pk
+                        primary key autoincrement,
+                client     integer      not null,
+                status     VARCHAR(128) not null,
+                address    VARCHAR(512) not null,
+                created_at text         not null
+            );
+    `)
+    require.NoErrorf(t, err, "Failed to create table schema")
+    
+    store := NewParcelStore(db)
+    
+    return db, store
+}
+
 // TestAddGetDelete проверяет добавление, получение и удаление посылки
 func TestAddGetDelete(t *testing.T) {
 	// prepare
-	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoErrorf(t, err, "Failed to initialize connection with database")
-	tx, err := db.Begin()
-	defer tx.Rollback()
-	require.NoErrorf(t, err, "Failed to begin transaction")
-	store := NewParcelStore(db)
+	db, store := setupTestDB(t)
+    defer db.Close()
 	parcel := getTestParcel()
 
 	// add
@@ -75,12 +95,9 @@ func TestAddGetDelete(t *testing.T) {
 func TestSetAddress(t *testing.T) {
 	// prepare
 
-	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoErrorf(t, err, "Failed to initialize connection with database")
-	tx, err := db.Begin()
-	defer tx.Rollback()
-	require.NoErrorf(t, err, "Failed to begin transaction")
-	store := NewParcelStore(db)
+	db, store := setupTestDB(t)
+    defer db.Close()
+
 	parcel := getTestParcel()
 
 	// add
@@ -110,12 +127,9 @@ func TestSetAddress(t *testing.T) {
 func TestSetStatus(t *testing.T) {
 	// prepare
 
-	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoErrorf(t, err, "Failed to initialize connection with database")
-	tx, err := db.Begin()
-	defer tx.Rollback()
-	require.NoErrorf(t, err, "Failed to begin transaction")
-	store := NewParcelStore(db)
+	db, store := setupTestDB(t)
+    defer db.Close()
+
 	parcel := getTestParcel()
 
 	// add
@@ -128,6 +142,7 @@ func TestSetStatus(t *testing.T) {
 	// set status
 	// обновите статус, убедитесь в отсутствии ошибки
 	err = store.SetStatus(number, ParcelStatusDelivered)
+    require.NoErrorf(t, err, "Failed to set status")
 
 	// check
 	// получите добавленную посылку и убедитесь, что статус обновился
@@ -140,13 +155,8 @@ func TestSetStatus(t *testing.T) {
 // TestGetByClient проверяет получение посылок по идентификатору клиента
 func TestGetByClient(t *testing.T) {
 	// prepare
-
-	db, err := sql.Open("sqlite", "tracker.db")
-	require.NoErrorf(t, err, "Failed to initialize connection with database")
-	tx, err := db.Begin()
-	defer tx.Rollback()
-	require.NoErrorf(t, err, "Failed to begin transaction")
-	store := NewParcelStore(db)
+	db, store := setupTestDB(t)
+    defer db.Close()
 
 	parcels := []Parcel{
 		getTestParcel(),
